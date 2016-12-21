@@ -26,7 +26,7 @@ namespace Interpreter
         UnsignedInteger, Real, DecimalPart,
         DecimalPoint, ExponentPart, Exponent,
         Digit, Sign, String, AnyString,
-        RelationalOperator, LogicalOperator,
+        RelationalOperator, LogicalOperator,ArithmaticOperator,
         ThenStatement,
     } 
 }

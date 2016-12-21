@@ -24,6 +24,7 @@ namespace Interpreter
             var strng = new TokenRegex("\"(.*)\"", TokenType.String);
             var logicalOperator = new TokenRegex(@"^\.((o|O)(r|R)|(a|A)(n|N)(d|D)|(n|N)(o|O)(t|T))\.$", TokenType.LogicalOperator);
             var relationalOperators = new TokenRegex(@"^\.((g|G)(t|T)|(l|L)(t|T)|(e|E)(q|Q)|(g|G)(e|E)|(l|L)(e|E)|(n|N)(e|E))\.$", TokenType.RelationalOperator);
+            var arithmaticOperators = new TokenRegex(@"^\.(a|A)(d|D)(d|D)|(m|M)(u|U)(l|L)|(d|D)(I|i)(v|V)|(s|S)(u|U)(b|B)\.$", TokenType.ArithmaticOperator);
             var comment = new TokenRegex("^(R|r)(E|e)(M|m)$", TokenType.Comment);
             var end = new TokenRegex("^(E|e)(N|n)(D|d)$", TokenType.End);
             var read = new TokenRegex("^(R|r)(E|e)(A|a)(D|d)$", TokenType.Read);
@@ -45,6 +46,7 @@ namespace Interpreter
             tokenRegexes.Add(strng);
             tokenRegexes.Add(logicalOperator);
             tokenRegexes.Add(relationalOperators);
+            tokenRegexes.Add(arithmaticOperators);
             tokenRegexes.Add(comment);
             tokenRegexes.Add(end);
             tokenRegexes.Add(read);

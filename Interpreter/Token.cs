@@ -20,8 +20,8 @@ namespace Interpreter
 
     public enum TokenType
     {
-        Comment, Assignment, Print,
-        Read, If, End, IntegerVariable,StringVariable, RealVariable,
+        CommentKeyWord, Assignment, PrintKeyword,
+        Read, If, EndKeyword, IntegerVariable,StringVariable, RealVariable,
         Letter, Integer, Number,
         UnsignedInteger, Real, DecimalPart,
         DecimalPoint, ExponentPart, Exponent,

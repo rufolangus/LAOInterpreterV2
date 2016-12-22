@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace Interpreter
@@ -15,8 +16,10 @@ namespace Interpreter
             tokenizer = new Tokenizer();
             Console.WriteLine("LAO Interpreter");
             Console.WriteLine("Enter 'quit' to exit.");
+            var regex = @"^(q|Q)(u|U)(i|I)(t|T)${1}";
+            var quitReg = new Regex(regex);
             string line = string.Empty;
-            while ((line = Console.ReadLine()) != "quit")
+            while (!quitReg.IsMatch((line = Console.ReadLine())))
             {
                 
                 var tokens = tokenizer.Verify(line);

@@ -24,10 +24,10 @@ namespace Interpreter
             var ifReg = new TokenRegex("^IF$", TokenType.IfKeyword);
             var printReg = new TokenRegex("^PRINT$", TokenType.PrintKeyword);
             var thenReg = new TokenRegex("^THEN$", TokenType.ThenKeyword);
-            var unsignInteger = new TokenRegex(@"^(\d{1,6})$", TokenType.UnsignedInteger);
-            var integer = new TokenRegex(@"((^(\+|-)(\d{1,6})$)|(^(\d{1,6})$))", TokenType.Integer);
-            var real = new TokenRegex(@"((^(\+|-)(\d{1,6}))|(^(\d{1,6})))(\.(\d{1,6}))$|((^(\+|-)(\d{1,6}))|(^(\d{1,6})))(\.(\d{1,6}))E(((\+|-)(\d{1,6}))|(((\d{1,6}))\.(\d{1,6})$)|((\d{1,6})$))", TokenType.Real);
-            var number = new TokenRegex(@"((^(\+|-)(\d{1,6}))|(^(\d{1,6})))(\.(\d{1,6}))$|((^(\+|-)(\d{1,6}))|(^(\d{1,6})))(\.(\d{1,6}))E(((\+|-)(\d{1,6}))|(((\d{1,6}))\.(\d{1,6})$)|((\d{1,6})$))|((^(\+|-)(\d{1,6})$)|(^(\d{1,6})$))", TokenType.Number);
+            var unsignInteger = new TokenRegex(@"^(\d{1,8})$", TokenType.UnsignedInteger);
+            var integer = new TokenRegex(@"((^(\+|-)(\d{1,8})$)|(^(\d{1,8})$))", TokenType.Integer);
+            var real = new TokenRegex(@"((^(\+|-)(\d{1,8}))|(^(\d{1,8})))(\.(\d{1,8}))$|((^(\+|-)(\d{1,8}))|(^(\d{1,8})))(\.(\d{1,8}))E(((\+|-)(\d{1,8}))|(((\d{1,8}))\.(\d{1,8})$)|((\d{1,8})$))", TokenType.Real);
+            var number = new TokenRegex(@"((^(\+|-)(\d{1,8}))|(^(\d{1,8})))(\.(\d{1,8}))$|((^(\+|-)(\d{1,8}))|(^(\d{1,8})))(\.(\d{1,8}))E(((\+|-)(\d{1,8}))|(((\d{1,8}))\.(\d{1,8})$)|((\d{1,8})$))|((^(\+|-)(\d{1,8})$)|(^(\d{1,8})$))", TokenType.Number);
             var assignment = new TokenRegex("^=$", TokenType.AssignmentOperator);
 
             tokenRegexes = new TokenRegex[] { realVariable, stringVariable,
@@ -35,8 +35,8 @@ namespace Interpreter
                                               logicalOperator, relationalOperators,
                                               arithmaticOperators, comment,
                                               end, read, ifReg, printReg,
-                                              thenReg, unsignInteger, integer,
-                                              real, number, assignment };
+                                              thenReg, number, unsignInteger, integer,
+                                              real, assignment };
         }
 
         public Token[] Verify(string value)

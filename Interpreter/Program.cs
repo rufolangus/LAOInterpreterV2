@@ -10,10 +10,12 @@ namespace Interpreter
     class Program
     {
         private static Tokenizer tokenizer;
+        private static StatementRecognizer statementRecognizer;
         static void Main(string[] args)
         {
 
             tokenizer = new Tokenizer();
+            statementRecognizer = new StatementRecognizer();
             Console.WriteLine("LAO Interpreter");
             Console.WriteLine("Enter 'quit' to exit.");
             var regex = @"^(q|Q)(u|U)(i|I)(t|T)${1}";
@@ -21,24 +23,38 @@ namespace Interpreter
             string line = string.Empty;
             while (!quitReg.IsMatch((line = Console.ReadLine())))
             {
-                
-                var tokens = tokenizer.Verify(line);
-                if (tokens != null && tokens.Length > 0)
+                var words = line.Split();
+                var sentenceTokens = words.Select(w => new WordTokens(w, tokenizer.Verify(w))).ToArray();
+                var hasErrors = CheckForTokenErrors(sentenceTokens);
+                if (!hasErrors)
+                    statementRecognizer.Verify(sentenceTokens);
+
+            }
+        }
+
+       static bool CheckForTokenErrors(WordTokens[] sentenceTokens)
+        {
+            
+            var hasErrors = sentenceTokens == null || sentenceTokens.Length < 1;
+            if (!hasErrors) 
+            foreach(var wordToken in sentenceTokens)
+                if (wordToken.tokens?.Length > 0)
                 {
                     Console.ForegroundColor = ConsoleColor.Green;
-                    Console.WriteLine("Input: " + line + " is a token");
+                    Console.WriteLine("Input: " + wordToken.value + " is a token");
                     Console.WriteLine("Possible Tokens:");
-                    foreach (var token in tokens)
+                    foreach (var token in wordToken.tokens)
                         Console.WriteLine(token.type);
 
                 }
                 else
                 {
                     Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine("Error: " + line + " not a token.");
+                    Console.WriteLine("Error: " + wordToken.value + " not a token.");
+                    Console.ForegroundColor = ConsoleColor.White;
+                    return true;
                 }
-                Console.ForegroundColor = ConsoleColor.White;
-            }
+            return hasErrors;
         }
     }
 }

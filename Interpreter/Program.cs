@@ -23,7 +23,13 @@ namespace Interpreter
             string line = string.Empty;
             while (!quitReg.IsMatch((line = Console.ReadLine())))
             {
-                var words = line.Split();
+                var words = line.Split('"')
+                           .Select((element, index) => index % 2 == 0  // If even index
+                                           ? element.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)  // Split the item
+                                           : new string[] { element ="\""+ element + "\""})  // Keep the entire item
+                     .SelectMany(element => element).ToList();
+                foreach (var character in line) { 
+}
                 var sentenceTokens = words.Select(w => new WordTokens(w, tokenizer.Verify(w))).ToArray();
                 var hasErrors = CheckForTokenErrors(sentenceTokens);
                 if (!hasErrors)

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Text.RegularExpressions;
+using System.Text.RegularExpressions; 
 
 namespace Interpreter
 {
@@ -11,12 +11,44 @@ namespace Interpreter
     {
         StatementRegex[] statementRegexes;
 
+        /* Token Type ENUM:
+         * CommentKeyword                   = 0
+         * Assignment Operator              = 1
+         * PrinterKeyword                   = 2
+         * ReadKeyword                      = 3
+         * IfKeyword                        = 4
+         * EndKeyWord                       = 5
+         * IntegerVariable                  = 6
+         * StringVariable                   = 7
+         * RealVariable                     = 8
+         * Integer                          = 9
+         * Number                           = 10
+         * UnsignedInteger                  = 11
+         * Real                             = 12
+         * String                           = 13
+         * GreaterThanRelationalOperator    = 14
+         * LessThanRelationalOperator       = 15
+         * EqualRelationalOperator          = 16
+         * EqualGreaterRelationalOperator   = 17
+         * EqualLessRelationalOperator      = 18
+         * NotEqualRelationalOperator       = 19
+         * AndLogicalOperator               = 20
+         * OrLogicalOperator                = 21
+         * NotLogicalOperator               = 22
+         * AddArithmaticOperator            = 23
+         * SubArithmaticOperator            = 24
+         * MulArithmaticOperator            = 25
+         * DivArithmaticOperator            = 26
+         * ThenKeyword = 27
+         *  */
         public StatementRecognizer()
         {
             var commentStatement = new StatementRegex("^0",StatementType.Comment);
             var printStatement = new StatementRegex("((^2(13|10|6|8|7)$)|(^2$))", StatementType.Print);
             var readStatement = new StatementRegex("^3(6|8|7)$", StatementType.Read);
             var endStatement = new StatementRegex("^5$", StatementType.End);
+            var arithmaticStatement = new StatementRegex("", StatementType.Airthmetic);
+
             statementRegexes = new StatementRegex[] { commentStatement, printStatement, readStatement, endStatement };
         }
 

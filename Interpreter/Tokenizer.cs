@@ -11,32 +11,56 @@ namespace Interpreter
         TokenRegex[] tokenRegexes;
         public Tokenizer()
         {
-            var realVariable = new TokenRegex(@"(?!(IF)$)(^[G-N]([A-Z]{0,8}){1}$)", TokenType.RealVariable);
-            var stringVariable = new TokenRegex("(?!(REM|READ|PRINT|THEN)$)(^[O-Z]([A-Z]{0,8}){1}$)", TokenType.StringVariable);
-            var integerVariable = new TokenRegex("^[A-F]([A-Z]{0,8}){1}$", TokenType.IntegerVariable);
-            var strng = new TokenRegex("^\"(.*)\"${1}", TokenType.String);
-            var logicalOperator = new TokenRegex(@"^\.(OR|AND|NOT)\.$", TokenType.LogicalOperator);
-            var relationalOperators = new TokenRegex(@"^\.(GT|LT|EQ|GE|LE|NE)\.$", TokenType.RelationalOperator);
-            var arithmaticOperators = new TokenRegex(@"^\.(ADD|SUB|MUL|DIV)\.$", TokenType.ArithmaticOperator);
-            var comment = new TokenRegex("^REM$", TokenType.CommentKeyword);
-            var end = new TokenRegex(@"^END\.$", TokenType.EndKeyword);
-            var read = new TokenRegex("^READ$", TokenType.ReadKeyword);
-            var ifReg = new TokenRegex("^IF$", TokenType.IfKeyword);
-            var printReg = new TokenRegex("^PRINT$", TokenType.PrintKeyword);
-            var thenReg = new TokenRegex("^THEN$", TokenType.ThenKeyword);
-            var unsignInteger = new TokenRegex(@"^(\d{1,8})$", TokenType.UnsignedInteger);
-            var integer = new TokenRegex(@"((^(\+|-)(\d{1,8})$)|(^(\d{1,8})$))", TokenType.Integer);
-            var real = new TokenRegex(@"((^(\+|-)(\d{1,8}))|(^(\d{1,8})))(\.(\d{1,8}))$|((^(\+|-)(\d{1,8}))|(^(\d{1,8})))(\.(\d{1,8}))E(((\+|-)(\d{1,8}))|(((\d{1,8}))\.(\d{1,8})$)|((\d{1,8})$))", TokenType.Real);
-            var number = new TokenRegex(@"((^(\+|-)(\d{1,8}))|(^(\d{1,8})))(\.(\d{1,8}))$|((^(\+|-)(\d{1,8}))|(^(\d{1,8})))(\.(\d{1,8}))E(((\+|-)(\d{1,8}))|(((\d{1,8}))\.(\d{1,8})$)|((\d{1,8})$))|((^(\+|-)(\d{1,8})$)|(^(\d{1,8})$))", TokenType.Number);
-            var assignment = new TokenRegex("^=$", TokenType.AssignmentOperator);
+            //VARIABLES
+            var realVar         = new TokenRegex(@"(?!(IF)$)(^[G-N]([A-Z]{0,8}){1}$)", TokenType.RealVariable);
+            var stringVar       = new TokenRegex("(?!(REM|READ|PRINT|THEN)$)(^[O-Z]([A-Z]{0,8}){1}$)", TokenType.StringVariable);
+            var intVar          = new TokenRegex("^[A-F]([A-Z]{0,8}){1}$", TokenType.IntegerVariable);
 
-            tokenRegexes = new TokenRegex[] { realVariable, stringVariable,
-                                              integerVariable, strng,
-                                              logicalOperator, relationalOperators,
-                                              arithmaticOperators, comment,
-                                              end, read, ifReg, printReg,
-                                              thenReg, number, unsignInteger, integer,
-                                              real, assignment };
+            //Logical Operators
+            var andOP           = new TokenRegex(@"^\.(AND)\.$", TokenType.AndLogicalOperator);
+            var orOP            = new TokenRegex(@"^\.(OR)\.$", TokenType.OrLogicalOperator);
+            var notOp           = new TokenRegex(@"^\.(NOT)\.$", TokenType.NotLogicalOperator);
+
+            //Relational Operators
+            var gtOP            = new TokenRegex(@"^\.(GT)\.$", TokenType.GreaterThanRelationalOperator);
+            var ltOP            = new TokenRegex(@"^\.(LT)\.$", TokenType.LessThanRelationalOperator);
+            var eqOP            = new TokenRegex(@"^\.(EQ)\.$", TokenType.EqualRelationalOperator);
+            var leOP            = new TokenRegex(@"^\.(LE)\.$", TokenType.EqualLessRelationalOperator);
+            var neOP            = new TokenRegex(@"^\.(NE)\.$", TokenType.NotEqualRelationalOperator);
+            
+            //ARITHMATIC OPERATORS
+            var addOP           = new TokenRegex(@"^\.(ADD)\.$", TokenType.AddArithmaticOperator);
+            var subOP           = new TokenRegex(@"^\.(SUB)\.$", TokenType.SubArithmaticOperator);
+            var mulOP           = new TokenRegex(@"^\.(MUL)\.$", TokenType.MulArithmaticOperator);
+            var divOP           = new TokenRegex(@"^\.(DIV)\.$", TokenType.DivArithmaticOperator);
+            
+            //ASIGNMENT OPERATORS
+            var assignOP        = new TokenRegex("^=$", TokenType.AssignmentOperator);
+
+            //KEYWORDS
+            var comment         = new TokenRegex("^REM$", TokenType.CommentKeyword);
+            var end             = new TokenRegex(@"^END\.$", TokenType.EndKeyword);
+            var read            = new TokenRegex("^READ$", TokenType.ReadKeyword);
+            var ifReg           = new TokenRegex("^IF$", TokenType.IfKeyword);
+            var printReg        = new TokenRegex("^PRINT$", TokenType.PrintKeyword);
+            var thenReg         = new TokenRegex("^THEN$", TokenType.ThenKeyword);
+
+            //TYPES
+            var strng           = new TokenRegex("^\"(.*)\"${1}", TokenType.String);
+            var unsignInteger   = new TokenRegex(@"^(\d{1,8})$", TokenType.UnsignedInteger);
+            var integer         = new TokenRegex(@"((^(\+|-)(\d{1,8})$)|(^(\d{1,8})$))", TokenType.Integer);
+            var real            = new TokenRegex(@"((^(\+|-)(\d{1,8}))|(^(\d{1,8})))(\.(\d{1,8}))$|((^(\+|-)(\d{1,8}))|(^(\d{1,8})))(\.(\d{1,8}))E(((\+|-)(\d{1,8}))|(((\d{1,8}))\.(\d{1,8})$)|((\d{1,8})$))", TokenType.Real);
+            var number          = new TokenRegex(@"((^(\+|-)(\d{1,8}))|(^(\d{1,8})))(\.(\d{1,8}))$|((^(\+|-)(\d{1,8}))|(^(\d{1,8})))(\.(\d{1,8}))E(((\+|-)(\d{1,8}))|(((\d{1,8}))\.(\d{1,8})$)|((\d{1,8})$))|((^(\+|-)(\d{1,8})$)|(^(\d{1,8})$))", TokenType.Number);
+
+            tokenRegexes        = new TokenRegex[] {
+                                                    realVar, stringVar, intVar,
+                                                    andOP, orOP, notOp,
+                                                    gtOP, ltOP, eqOP, leOP, neOP,
+                                                    addOP, subOP, mulOP, divOP,
+                                                    assignOP, comment, end, read,
+                                                    ifReg, printReg, thenReg, strng,
+                                                    unsignInteger, integer, real, number,
+                                                   };
         }
 
         public Token[] Verify(string value)

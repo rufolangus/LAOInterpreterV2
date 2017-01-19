@@ -24,7 +24,13 @@ namespace Interpreter
         ReadKeyword, IfKeyword, EndKeyword,
         IntegerVariable, StringVariable, RealVariable,
         Integer, Number, UnsignedInteger,
-        Real, String, RelationalOperator,
-        LogicalOperator, ArithmaticOperator, ThenKeyword,
+        Real, String, GreaterThanRelationalOperator,
+        LessThanRelationalOperator, EqualRelationalOperator,
+        EqualGreaterRelationalOperator, EqualLessRelationalOperator,
+        NotEqualRelationalOperator, AndLogicalOperator,
+        OrLogicalOperator, NotLogicalOperator,
+        AddArithmaticOperator, SubArithmaticOperator,
+        MulArithmaticOperator, DivArithmaticOperator,
+        ThenKeyword,
     } 
 }

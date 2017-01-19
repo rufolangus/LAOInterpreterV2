@@ -8,6 +8,10 @@ namespace Interpreter
 {
     public enum StatementType
     {
-        None, Comment, Assignment, Print, Read, If, End
+        None, Comment,
+        Assignment, Print,
+        Read, If, End,
+        Conditional,
+        Airthmetic, 
     }
 }

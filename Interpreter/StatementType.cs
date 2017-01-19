@@ -12,6 +12,6 @@ namespace Interpreter
         Assignment, Print,
         Read, If, End,
         Conditional,
-        Airthmetic, 
+        Airthmetic,  Then
     }
 }

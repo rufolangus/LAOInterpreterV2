@@ -47,10 +47,10 @@ namespace Interpreter
 
             //TYPES
             var strng           = new TokenRegex("^\"(.*)\"${1}", TokenType.String);
+            var number          = new TokenRegex(@"((^(\+|-)(\d{1,8}))|(^(\d{1,8})))(\.(\d{1,8}))$|((^(\+|-)(\d{1,8}))|(^(\d{1,8})))(\.(\d{1,8}))E(((\+|-)(\d{1,8}))|(((\d{1,8}))\.(\d{1,8})$)|((\d{1,8})$))|((^(\+|-)(\d{1,8})$)|(^(\d{1,8})$))", TokenType.Number);
             var unsignInteger   = new TokenRegex(@"^(\d{1,8})$", TokenType.UnsignedInteger);
             var integer         = new TokenRegex(@"((^(\+|-)(\d{1,8})$)|(^(\d{1,8})$))", TokenType.Integer);
             var real            = new TokenRegex(@"((^(\+|-)(\d{1,8}))|(^(\d{1,8})))(\.(\d{1,8}))$|((^(\+|-)(\d{1,8}))|(^(\d{1,8})))(\.(\d{1,8}))E(((\+|-)(\d{1,8}))|(((\d{1,8}))\.(\d{1,8})$)|((\d{1,8})$))", TokenType.Real);
-            var number          = new TokenRegex(@"((^(\+|-)(\d{1,8}))|(^(\d{1,8})))(\.(\d{1,8}))$|((^(\+|-)(\d{1,8}))|(^(\d{1,8})))(\.(\d{1,8}))E(((\+|-)(\d{1,8}))|(((\d{1,8}))\.(\d{1,8})$)|((\d{1,8})$))|((^(\+|-)(\d{1,8})$)|(^(\d{1,8})$))", TokenType.Number);
 
             tokenRegexes        = new TokenRegex[] {
                                                     realVar, stringVar, intVar,
@@ -59,7 +59,7 @@ namespace Interpreter
                                                     addOP, subOP, mulOP, divOP,
                                                     assignOP, comment, end, read,
                                                     ifReg, printReg, thenReg, strng,
-                                                    unsignInteger, integer, real, number,
+                                                    number, unsignInteger, integer, real,
                                                    };
         }
 

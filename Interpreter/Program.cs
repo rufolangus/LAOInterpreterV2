@@ -18,24 +18,24 @@ namespace Interpreter
             statementRecognizer = new StatementRecognizer();
             Console.WriteLine("LAO Interpreter");
             Console.WriteLine("Enter 'quit' to exit.");
-            var regex = @"^(q|Q)(u|U)(i|I)(t|T)${1}";
-            var quitReg = new Regex(regex);
+            var quitReg = new Regex(@"^QUIT${1}", RegexOptions.IgnoreCase);
             string line = string.Empty;
             while (!quitReg.IsMatch((line = Console.ReadLine())))
             {
-                var words = line.Split('"')
-                           .Select((element, index) => index % 2 == 0  // If even index
-                                           ? element.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)  // Split the item
-                                           : new string[] { element ="\""+ element + "\""})  // Keep the entire item
-                     .SelectMany(element => element).ToList();
-                foreach (var character in line) { 
-}
+                var words = ParseInput(line);
                 var sentenceTokens = words.Select(w => new WordTokens(w, tokenizer.Verify(w))).ToArray();
                 var hasErrors = CheckForTokenErrors(sentenceTokens);
                 if (!hasErrors)
                     statementRecognizer.Verify(sentenceTokens);
-
             }
+        }
+
+        static string [] ParseInput(string input)
+        {
+                return input.Split('"')
+                            .Select((element, index) => index % 2 == 0 ? element.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)
+                                                                       : new string[] { element = "\"" + element + "\"" })
+                            .SelectMany(element => element).ToArray();
         }
 
        static bool CheckForTokenErrors(WordTokens[] sentenceTokens)

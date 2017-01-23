@@ -49,6 +49,7 @@ namespace Interpreter
             var readStatement           = new StatementRegex(@"^3-(6|8|7)$", StatementType.Read);
             var endStatement            = new StatementRegex(@"^5$", StatementType.End);
             var arithmaticStatement     = new StatementRegex(@"^(((6|7|8|10|13)(-(23)-(6|7|8|10|13))+)|((6|8|10)(-(23|24|25|26)-(6|8|10))+))$", StatementType.Airthmetic);
+            //conditionalStatement needs some fixes
             var conditionalStatement    = new StatementRegex(@"^(22-)?(((13|7)(-(14|15|16|18|19)-(13|7)))|((6|8|10)(-(14|15|16|18|19)-(6|8|10))))((-(20|21)-(((13|7)(-(14|15|16|18|19)-(13|7)))|((6|8|10)(-(14|15|16|18|19)-(6|8|10)))))+)?$", StatementType.Conditional);
             //assignmentStatmentNeedsSomeFixes
             var assignmentStatment      = new StatementRegex(@"^((7-1-(7|13))|(6-1-(6|10))|(8-1-(8|10)))$", StatementType.Assignment);

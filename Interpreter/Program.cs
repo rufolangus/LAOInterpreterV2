@@ -13,7 +13,6 @@ namespace Interpreter
         private static StatementRecognizer statementRecognizer;
         static void Main(string[] args)
         {
-
             tokenizer = new Tokenizer();
             statementRecognizer = new StatementRecognizer();
             Console.WriteLine("LAO Interpreter");

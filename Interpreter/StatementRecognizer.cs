@@ -60,26 +60,25 @@ namespace Interpreter
                                                                  arithmaticStatement, conditionalStatement,
                                                                  assignmentStatment, thenStatement, ifStatement
                                                                };
-            
+
         }
 
 
         public void Verify(WordTokens[] wordTokens)
         {
             var matchString = TranslateToString(wordTokens);
+            var list = new List<string>();
+            
+            
             var results = statementRegexes.Select(r => new { statementType = r.Verify(matchString),  })
                                           .Where(a => a.statementType != StatementType.None)
                                           .ToArray();
             if (results?.Length > 0)
             {
                 var line = string.Empty;
-                var words = wordTokens.Select(w => w.value);
+                var words = wordTokens.Select(w => w.value).ToArray();
                 foreach (var word in words)
-                {
-                    line += word;
-                    if (word != words.Last())
-                        line += " ";
-                }
+                    line += word + " ";
 
                 Console.WriteLine("STATEMENT RECOGNIZED: ");
                 Console.WriteLine(line);
@@ -92,15 +91,9 @@ namespace Interpreter
         public string TranslateToString(WordTokens[] wordTokens)
         {
             //This has to change a bit. I am selecting the first token, i should test all.
-            var values = wordTokens.Where(w => w.tokens?.Length > 0).Select(w => (int)w.tokens.First().type).ToArray();
-            var result = string.Empty;
-            for(int i = 0; i < values.Length; i++)
-            {
-                var value = values[i];
-                var isLast = i == values.Count() - 1;
-                result += isLast ? value.ToString() : value.ToString() + "-";
-            }
-
+            var result = wordTokens.Where(w => w.tokens?.Length > 0)
+                                   .Select(w => ((int)w.tokens.First().type).ToString())
+                                   .Aggregate((current, next) => current.ToString() + "-" + next.ToString());
             Console.WriteLine("Resulting REGEX STRING: " + result);
             return result;
 

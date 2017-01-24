@@ -29,18 +29,22 @@ namespace Interpreter
             }
         }
 
-        static string [] ParseInput(string input)
+        static string[] ParseInput(string input)
         {
+            var splitOptions = StringSplitOptions.RemoveEmptyEntries;
+            Func<int, bool> IsEven = (index) => 
+            {
+                return index % 2 == 0;
+            };
                 return input.Split('"')
-                            .Select((element, index) => index % 2 == 0 ? element.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)
-                                                                       : new string[] { element = "\"" + element + "\"" })
-                            .SelectMany(element => element).ToArray();
+                            .Select((e, i) => IsEven(i) ? e.Split(new[] { ' ' }, splitOptions)
+                                                        : new string[] { e = "\"" + e + "\"" })
+                            .SelectMany(e => e).ToArray();
         }
 
        static bool CheckForTokenErrors(WordTokens[] sentenceTokens)
         {
-            
-            var hasErrors = sentenceTokens == null || sentenceTokens.Length < 1;
+            var hasErrors = sentenceTokens?.Length < 1;
             if (!hasErrors) 
             foreach(var wordToken in sentenceTokens)
                 if (wordToken.tokens?.Length > 0)

@@ -69,7 +69,7 @@ namespace Interpreter
             var matchString = TranslateToString(wordTokens);
             var list = new List<string>();
             
-            
+            //Using anonymous type. Should create an class for this.
             var results = statementRegexes.Select(r => new { statementType = r.Verify(matchString),  })
                                           .Where(a => a.statementType != StatementType.None)
                                           .ToArray();

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-
+using System.IO;
 namespace Interpreter
 {
     class Program
@@ -15,18 +15,41 @@ namespace Interpreter
         {
             tokenizer = new Tokenizer();
             statementRecognizer = new StatementRecognizer();
+            statementRecognizer.OnError += (e) =>
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine(e);
+                Console.ForegroundColor = ConsoleColor.White;
+            };
+            if (args.Length == 1)
+            {
+                var filePath = args[0];
+                if (Directory.Exists(filePath) || File.Exists(filePath))
+                {
+                    var file = File.ReadAllLines(filePath);
+                    foreach (var sentence in file)
+                        MainRoutine(sentence);
+                    Console.Read();
+                    return;
+                }
+            }
+
             Console.WriteLine("LAO Interpreter");
             Console.WriteLine("Enter 'quit' to exit.");
             var quitReg = new Regex(@"^QUIT${1}", RegexOptions.IgnoreCase);
             string line = string.Empty;
             while (!quitReg.IsMatch((line = Console.ReadLine())))
-            {
-                var words = ParseInput(line);
-                var sentenceTokens = words.Select(w => new WordTokens(w, tokenizer.Verify(w))).ToArray();
-                var hasErrors = CheckForTokenErrors(sentenceTokens);
-                if (!hasErrors)
-                    statementRecognizer.Verify(sentenceTokens);
-            }
+                   MainRoutine(line);
+            
+        }
+
+        static void MainRoutine(string line)
+        {
+            var words = ParseInput(line);
+            var sentenceTokens = words.Select(w => new WordTokens(w, tokenizer.Verify(w))).ToArray();
+            var hasErrors = CheckForTokenErrors(sentenceTokens);
+            if (!hasErrors)
+                statementRecognizer.Verify(sentenceTokens);
         }
 
         static string[] ParseInput(string input)
@@ -54,7 +77,6 @@ namespace Interpreter
                     Console.WriteLine("Possible Tokens:");
                     foreach (var token in wordToken.tokens)
                         Console.WriteLine(token.type);
-
                 }
                 else
                 {

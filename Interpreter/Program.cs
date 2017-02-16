@@ -23,6 +23,7 @@ namespace Interpreter
 
         static void Main(string[] args)
         {
+            //args = new string[] { "test.lao" };
             tokenizer = new Tokenizer();
             statementRecognizer = new StatementRecognizer();
             runner = new Runner(tokenizer);

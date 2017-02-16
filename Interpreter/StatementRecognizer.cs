@@ -205,13 +205,15 @@ namespace Interpreter
 
             var firstToken = tokens.First();
             bool isRelational = false;
-            if (tokens.Length == 3)
+            if (tokens.Length >= 3)
             {
                 var op = tokens.Select((value, index) => new { value, index }).FirstOrDefault(t => t.value.tokens.Any(to => conditionalOperators.Any(o => o == to.type)));
                 if (op != null)
                 {
                     var index = op.index;
                     var before = tokens[index - 1];
+                    if (index + 1 >= tokens.Length)
+                        return null;
                     var after = tokens[index + 1];
                     var isStrings = (stringTypes.Any(t => before.tokens.Any(tk => tk.type == t)) && stringTypes.Any(t => after.tokens.Any(tk => tk.type == t)));
                     var isReals = (realTypes.Any(t => before.tokens.Any(tk => tk.type == t)) && realTypes.Any(t => after.tokens.Any(tk => tk.type == t)));
@@ -313,12 +315,16 @@ namespace Interpreter
                     var asisgnment = CheckForAssignment(statment);
                     var print = CheckForPrintStatement(statment);
                     var read = CheckForReadStatement(statment);
-                    if (asisgnment != null)
+                    var arithmatic = CheckForArithmaticStatement(tokens);
+                     if (arithmatic != null)
+                        return new IfStatement(tokens, conditionStatement, arithmatic);
+                    else if (asisgnment != null)
                         return new IfStatement(tokens, conditionStatement, asisgnment);
                     else if (print != null)
                         return new IfStatement(tokens, conditionStatement, print);
                     else if (read != null)
-                        return new IfStatement(tokens, conditionStatement, print);
+                        return new IfStatement(tokens, conditionStatement, read);
+
                 } else if (isRelational != null)
                 {
 

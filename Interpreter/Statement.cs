@@ -228,7 +228,9 @@ namespace Interpreter
                     resultType = TokenType.Number;
                     break;
                 case TokenType.DivArithmaticOperator:
-                    result = (float.Parse(firstvalue) / float.Parse(secondValue)).ToString();
+                    var res = (float.Parse(firstvalue) / float.Parse(secondValue));
+                    res = (int)res;
+                    result = res.ToString();
                     resultType = TokenType.Number;
                     break;
                 case TokenType.SubArithmaticOperator:

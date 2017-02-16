@@ -1,2 +1,8 @@
-print 5
+print "Entre un entero: "
+read a
+print
+print "Entre un entero: "
+read b
+if a .gt. b .and. b .ne. 0 then c = a .div. b
+if a .gt. b .and. b .ne. 0 then print c
 end.

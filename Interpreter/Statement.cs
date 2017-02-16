@@ -211,15 +211,15 @@ namespace Interpreter
             switch (op.tokens.First().type)
             {
                 case TokenType.AddArithmaticOperator:
+                    if(firstIsNumeric && secondIsNumeric)
+                    {
+                        result = (float.Parse(firstvalue) + float.Parse(secondValue)).ToString();
+                        resultType = TokenType.Number;
+                    }else
                     if (firstIsNumeric || secondIsNumeric || (!firstIsNumeric && !secondIsNumeric))
                     {
                         result = firstvalue + secondValue;
                         resultType = TokenType.String;
-                    }
-                    else
-                    {
-                        result = (float.Parse(firstvalue) + float.Parse(secondValue)).ToString();
-                        resultType = TokenType.Number;
                     }
                     
                     break;
@@ -340,7 +340,26 @@ namespace Interpreter
             result = string.Empty;
             resultType = TokenType.AssignmentOperator;
             
-            if(value != null)
+
+            if(subStatement != null)
+            {
+                if (subStatement.GetType().GetInterfaces().Any(i => i == typeof(ExpressionStatement)))
+                {
+                    var expression = (ExpressionStatement)subStatement;
+                    expression.Execute(variables, out result, out resultType, tokenizer);
+                    if (variables.ContainsKey(variable.value))
+                    {
+                        variables[variable.value] = result;
+                    }
+                    else
+                    {
+                        variables.Add(variable.value, result);
+                    }
+
+                }
+            }else if
+
+            (value != null)
             {
                 if(variables.ContainsKey(variable.value))
                 {
@@ -349,27 +368,6 @@ namespace Interpreter
                 else
                 {
                     variables.Add(variable.value, value.value);
-                }
-            }else
-            {
-                if(subStatement != null)
-                {
-
-                    if (subStatement.GetType().GetInterfaces().Any(i => i == typeof(ExpressionStatement)))
-                    {
-                        var expression = (ExpressionStatement)subStatement;
-                        expression.Execute(variables, out result, out resultType, tokenizer);
-                        if (variables.ContainsKey(variable.value))
-                        {
-                            variables[variable.value] = result;
-                        }
-                        else
-                        {
-                            variables.Add(variable.value, result);
-                        }
-
-                    }
-
                 }
             }
         }

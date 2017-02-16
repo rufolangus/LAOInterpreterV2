@@ -83,9 +83,12 @@ namespace Interpreter
                     {
                         var statement = (IfStatement)result;
                         var exp = (Statement)statement.expression;
-                        if (exp.type == StatementType.PrintStatement && wordTokens.Count() > list.Count())
+                        if ((exp.type == StatementType.PrintStatement || exp.type == StatementType.AssignmentStatement) && wordTokens.Count() > list.Count())
                             continue;
                     }
+                    else if (result?.type == StatementType.AssignmentStatement && wordTokens.Count() > list.Count())
+                        continue;
+                   
                 }
                 if(result != null)
                 {
@@ -108,7 +111,8 @@ namespace Interpreter
                                                       TokenType.Real, TokenType.RealVariable,
                                                       TokenType.Integer, TokenType.IntegerVariable,
                                                       TokenType.Number };
-
+            if (tokens == null || tokens.Length == 0 || tokens.First().tokens.First().type != TokenType.PrintKeyword)
+                return null;
             if (tokens.Length == 1)
                 return new PrintStatement(tokens,null);
             else if (tokens.Length == 2)
@@ -136,32 +140,42 @@ namespace Interpreter
 
         AssignmentStatement CheckForAssignment(WordTokens[] tokens)
         {
-            var firstTokenType = tokens.First().tokens.First().type;
-            var firstToken = tokens.First();
             var intTypes = new TokenType[] { TokenType.Integer, TokenType.IntegerVariable, TokenType.UnsignedInteger };
             var realTypes = new TokenType[] { TokenType.Real, TokenType.RealVariable };
             var stringTypes = new TokenType[] { TokenType.String, TokenType.StringVariable };
 
             if(tokens.Length > 2)
             {
+                var firstTokenType = tokens.First().tokens.First().type;
+                var firstToken = tokens.First();
+
                 var secondTokenType = tokens[1].tokens.First().type;
                 var thirdTokenType = tokens[2].tokens;
 
                 if (secondTokenType == TokenType.AssignmentOperator)
                 {
+                    var isArithmatic = CheckForArithmaticStatement(tokens.Skip(2).ToArray());
                     switch (firstTokenType)
                     {
                         case TokenType.IntegerVariable:
-                            if (thirdTokenType.Any(t => intTypes.Any(type => t.type == type)))
+
+                            if (isArithmatic == null && thirdTokenType.Any(t => intTypes.Any(type => t.type == type)))
                                 return new AssignmentStatement(tokens, firstToken, tokens[2]);
+                            else if (isArithmatic != null && thirdTokenType.Any(t => intTypes.Any(type => t.type == type)))
+                                return new AssignmentStatement(tokens, firstToken, tokens[2], isArithmatic);
                             break;
                         case TokenType.RealVariable:
-                            if (thirdTokenType.Any(t => stringTypes.Any(type => t.type == type)))
+                            if (isArithmatic == null && thirdTokenType.Any(t => realTypes.Any(type => t.type == type)))
                                 return new AssignmentStatement(tokens, firstToken, tokens[2]);
+                            else if (isArithmatic != null && thirdTokenType.Any(t => realTypes.Any(type => t.type == type)))
+                                return new AssignmentStatement(tokens, firstToken, tokens[2], isArithmatic);
                             break;
                         case TokenType.StringVariable:
-                            if (thirdTokenType.Any(t => stringTypes.Any(type => t.type == type)))
+                            if (isArithmatic == null && thirdTokenType.Any(t => stringTypes.Any(type => t.type == type)))
                                 return new AssignmentStatement(tokens, firstToken, tokens[2]);
+                            else if (isArithmatic != null && thirdTokenType.Any(t => intTypes.Any(type => t.type == type)))
+                                return new AssignmentStatement(tokens, firstToken, tokens[2], isArithmatic);
+
                             break;
                         default:
                             OnError?.Invoke("First token type is not a variable.");
@@ -229,19 +243,19 @@ namespace Interpreter
                     {
                         case TokenType.AddArithmaticOperator:
                             if (typesForAdd.Any(t => t == firstToken.type) && typesForAdd.Any(t => t == thirdToken.type))
-                                return new ArithmaticStatement(tokens, tokens.First(), tokens[1], tokens[2]);
+                                return new ArithmaticStatement(tokens, tokens.First(), tokens[2], tokens[1]);
                             break;
                         case TokenType.SubArithmaticOperator:
                             if (typesForRest.Any(t => t == firstToken.type) && typesForRest.Any(t => t == thirdToken.type))
-                               return new ArithmaticStatement(tokens, tokens.First(), tokens[1], tokens[2]);
+                                return new ArithmaticStatement(tokens, tokens.First(), tokens[2], tokens[1]);
                             break; 
                         case TokenType.MulArithmaticOperator:
                             if (typesForRest.Any(t => t == firstToken.type) && typesForRest.Any(t => t == thirdToken.type))
-                                return new ArithmaticStatement(tokens, tokens.First(), tokens[1], tokens[2]);
+                                return new ArithmaticStatement(tokens, tokens.First(), tokens[2], tokens[1]);
                             break;
                         case TokenType.DivArithmaticOperator:
                             if (typesForRest.Any(t => t == firstToken.type) && typesForRest.Any(t => t == thirdToken.type))
-                                return new ArithmaticStatement(tokens, tokens.First(), tokens[1], tokens[2]);
+                                return new ArithmaticStatement(tokens, tokens.First(), tokens[2], tokens[1]);
                             break;
                     }
                 }else
@@ -296,7 +310,7 @@ namespace Interpreter
                 var conditionStatement = (ConditionStatement)isConditional == null ? (ConditionStatement)isRelational : (ConditionStatement)isConditional;
                 if (conditionStatement != null)
                 {
-                    var asisgnment = CheckForArithmaticStatement(statment);
+                    var asisgnment = CheckForAssignment(statment);
                     var print = CheckForPrintStatement(statment);
                     var read = CheckForReadStatement(statment);
                     if (asisgnment != null)

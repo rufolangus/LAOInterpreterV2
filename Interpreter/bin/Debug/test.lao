@@ -11,3 +11,6 @@ yx = "a greater than c"
 xy = "c greater than a"
 if a .gt. c then print yx
 if a .lt. c then print xy
+f = d .add. 5
+print f
+End.

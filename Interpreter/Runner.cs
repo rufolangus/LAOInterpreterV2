@@ -17,7 +17,7 @@ namespace Interpreter
             variables = new Dictionary<string, string>();
         }
 
-       public void Run(Statement expresion)
+       public bool Run(Statement expresion)
         {
             string result = string.Empty;
             TokenType resultType;
@@ -41,8 +41,7 @@ namespace Interpreter
                     ((IfStatement)expresion).Execute(variables, out result, out resultType, tokenizer);
                     break;
                 case StatementType.EndStatement:
-
-                    break;
+                    return false;
                 case StatementType.ConditionalStatement:
                     ((ConditionStatement)expresion).Evaluate(variables);
                     break;
@@ -54,6 +53,7 @@ namespace Interpreter
                 default:
                     break;
             }
+            return true;
         }
     }
 }

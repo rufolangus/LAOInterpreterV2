@@ -26,6 +26,7 @@ namespace Interpreter
             tokenizer = new Tokenizer();
             statementRecognizer = new StatementRecognizer();
             runner = new Runner(tokenizer);
+            var ended = false;
             statementRecognizer.OnError += (e) =>
             {
                 error = e;
@@ -37,7 +38,11 @@ namespace Interpreter
                 {
                     var file = File.ReadAllLines(filePath);
                     foreach (var sentence in file)
-                        MainRoutine(sentence);
+                    {
+                        ended = MainRoutine(sentence);
+                        if (ended)
+                            return;
+                    }
                     Console.Read();
                     return;
                 }else
@@ -52,7 +57,11 @@ namespace Interpreter
                 {
                     var file = File.ReadAllLines(filePath);
                     foreach (var sentence in file)
-                        MainRoutine(sentence);
+                    {
+                        ended = MainRoutine(sentence);
+                        if (ended)
+                            return;
+                    }
                     Console.Read();
                     return;
                 }
@@ -63,11 +72,15 @@ namespace Interpreter
             var quitReg = new Regex(@"^QUIT${1}", RegexOptions.IgnoreCase);
             string line = string.Empty;
             while (!quitReg.IsMatch((line = Console.ReadLine())))
-                   MainRoutine(line);
+            {
+               ended =  MainRoutine(line);
+                if (ended)
+                    return;
+            }
             
         }
 
-        static void MainRoutine(string line)
+        static bool MainRoutine(string line)
         {
             var words = ParseInput(line);
             var sentenceTokens = words.Select(w => new WordTokens(w, tokenizer.Verify(w))).ToArray();
@@ -76,10 +89,19 @@ namespace Interpreter
             {
                var expresion =  statementRecognizer.Verify(sentenceTokens);
                 if (expresion != null)
-                    runner.Run(expresion);
+                {
+                    var result = runner.Run(expresion);
+                    if (!result)
+                    {
+                        Console.WriteLine("Execution Terminated.");
+                        return true;
+                    }
+                }
                 else
                     PrintError(error);
             }
+            return false;
+
         }
 
         static string[] ParseInput(string input)

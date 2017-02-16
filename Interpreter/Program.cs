@@ -11,15 +11,24 @@ namespace Interpreter
     {
         private static Tokenizer tokenizer;
         private static StatementRecognizer statementRecognizer;
+        private static Runner runner;
+        private static string error = string.Empty;
+        private static bool verbose = false;
+        static void PrintError(string e)
+        {
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine(e);
+            Console.ForegroundColor = ConsoleColor.White;
+        }
+
         static void Main(string[] args)
         {
             tokenizer = new Tokenizer();
             statementRecognizer = new StatementRecognizer();
+            runner = new Runner(tokenizer);
             statementRecognizer.OnError += (e) =>
             {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine(e);
-                Console.ForegroundColor = ConsoleColor.White;
+                error = e;
             };
             if (args.Length == 1)
             {
@@ -49,7 +58,13 @@ namespace Interpreter
             var sentenceTokens = words.Select(w => new WordTokens(w, tokenizer.Verify(w))).ToArray();
             var hasErrors = CheckForTokenErrors(sentenceTokens);
             if (!hasErrors)
-                statementRecognizer.Verify(sentenceTokens);
+            {
+               var expresion =  statementRecognizer.Verify(sentenceTokens);
+                if (expresion != null)
+                    runner.Run(expresion);
+                else
+                    PrintError(error);
+            }
         }
 
         static string[] ParseInput(string input)
@@ -66,17 +81,18 @@ namespace Interpreter
         }
 
        static bool CheckForTokenErrors(WordTokens[] sentenceTokens)
-        {
+        { 
             var hasErrors = sentenceTokens?.Length < 1;
-            if (!hasErrors) 
+            if (!hasErrors && verbose) 
             foreach(var wordToken in sentenceTokens)
-                if (wordToken.tokens?.Length > 0)
+                if (wordToken.tokens?.Length > 0 && verbose)
                 {
                     Console.ForegroundColor = ConsoleColor.Green;
                     Console.WriteLine("Input: " + wordToken.value + " is a token");
                     Console.WriteLine("Possible Tokens:");
                     foreach (var token in wordToken.tokens)
                         Console.WriteLine(token.type);
+                        Console.ForegroundColor = ConsoleColor.White;
                 }
                 else
                 {

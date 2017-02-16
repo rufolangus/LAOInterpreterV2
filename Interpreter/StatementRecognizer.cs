@@ -66,48 +66,43 @@ namespace Interpreter
         }
 
 
-        public void Verify(WordTokens[] wordTokens)
+        public Statement Verify(WordTokens[] wordTokens)
         {
 
-            var result = Test(wordTokens);
-            Console.WriteLine(wordTokens.Select(t => t.value).Aggregate((current, next) => { return current + " " + next; }));
-            Console.WriteLine("Is Token? " + result);
-            return;
-            var matchString = TranslateToString(wordTokens);
-            var list = new List<string>();
-            
-            //Using anonymous type. Should create an class for this.
-            var results = statementRegexes.Select(r => new { statementType = r.Verify(matchString),  })
-                                          .Where(a => a.statementType != StatementType.None)
-                                          .ToArray();
-            if (results?.Length > 0)
+            var list = new List<WordTokens>();
+            Statement expression = null;
+            foreach(var token in wordTokens)
             {
-                var line = string.Empty;
-                var words = wordTokens.Select(w => w.value).ToArray();
-                foreach (var word in words)
-                    line += word + " ";
-                Console.ForegroundColor = ConsoleColor.White;
-                Console.WriteLine("STATEMENT RECOGNIZED: ");
-                Console.WriteLine(line);
-                foreach(var statement in results)
-                    Console.WriteLine(statement.statementType);
-
-            }else
-            {
-                var line = string.Empty;
-                //Console.ForegroundColor = ConsoleColor.White;
-
-                
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine("Error");
-                Console.WriteLine("Print requires a variable, literal or none.");
-                Console.ForegroundColor = ConsoleColor.White;
+                list.Add(token);
+                var result = IdentifyStatements(list.ToArray());
+                if (result != null && (result.type == StatementType.PrintStatement && wordTokens.Count() > list.Count()))
+                    continue;
+                else
+                {
+                    if (result?.type == StatementType.IfStatement)
+                    {
+                        var statement = (IfStatement)result;
+                        var exp = (Statement)statement.expression;
+                        if (exp.type == StatementType.PrintStatement && wordTokens.Count() > list.Count())
+                            continue;
+                    }
+                }
+                if(result != null)
+                {
+                    if (expression != null)
+                    {
+                        expression.SetSubStatement(result);
+                    }
+                    else
+                        expression = result;
+                    list = new List<WordTokens>();
+                }
             }
-            
+            return expression;
         }
 
         
-        bool CheckForPrintStatement(WordTokens[] tokens)
+        PrintStatement CheckForPrintStatement(WordTokens[] tokens)
         {
             var allowedTokenTypes = new TokenType[] { TokenType.String, TokenType.StringVariable,
                                                       TokenType.Real, TokenType.RealVariable,
@@ -115,33 +110,38 @@ namespace Interpreter
                                                       TokenType.Number };
 
             if (tokens.Length == 1)
-                return true;
+                return new PrintStatement(tokens,null);
             else if (tokens.Length == 2)
             {
                 var secondToken = tokens[1];
                 if (allowedTokenTypes.Any(t => t == secondToken.tokens.First().type))
-                    return true;
+                    return new PrintStatement(tokens, secondToken);
                 else
                 {
                     var errorString = allowedTokenTypes.Select(t => t.ToString()).Aggregate((current, next) => { return current + "\n" + next; });
                     errorString = "Error: Second token must be any of the following:\n" + errorString;
                     OnError?.Invoke(errorString);
-                    return false;
+                    return null;
                 }
             }
             else if(tokens.Length > 2)
             {
                 OnError?.Invoke("Too many arguments for print statement.");
-                return false;
+                return null;
             }
             OnError?.Invoke("Unidentified Error.");
-            return false;
+            return null;
         }
 
 
-        bool CheckForAssignment(WordTokens[] tokens)
+        AssignmentStatement CheckForAssignment(WordTokens[] tokens)
         {
             var firstTokenType = tokens.First().tokens.First().type;
+            var firstToken = tokens.First();
+            var intTypes = new TokenType[] { TokenType.Integer, TokenType.IntegerVariable, TokenType.UnsignedInteger };
+            var realTypes = new TokenType[] { TokenType.Real, TokenType.RealVariable };
+            var stringTypes = new TokenType[] { TokenType.String, TokenType.StringVariable };
+
             if(tokens.Length > 2)
             {
                 var secondTokenType = tokens[1].tokens.First().type;
@@ -152,75 +152,69 @@ namespace Interpreter
                     switch (firstTokenType)
                     {
                         case TokenType.IntegerVariable:
-                            return thirdTokenType.Any(t => t.type == TokenType.Integer ||
-                                                           t.type == TokenType.IntegerVariable || 
-                                                           t.type == TokenType.Number);
+                            if (thirdTokenType.Any(t => intTypes.Any(type => t.type == type)))
+                                return new AssignmentStatement(tokens, firstToken, tokens[2]);
+                            break;
                         case TokenType.RealVariable:
-                            return thirdTokenType.Any(t => t.type == TokenType.Real || 
-                                                           t.type == TokenType.RealVariable || 
-                                                           t.type == TokenType.Number);
+                            if (thirdTokenType.Any(t => stringTypes.Any(type => t.type == type)))
+                                return new AssignmentStatement(tokens, firstToken, tokens[2]);
+                            break;
                         case TokenType.StringVariable:
-                            return thirdTokenType.Any(t => t.type == TokenType.StringVariable ||
-                               t.type == TokenType.String);
+                            if (thirdTokenType.Any(t => stringTypes.Any(type => t.type == type)))
+                                return new AssignmentStatement(tokens, firstToken, tokens[2]);
+                            break;
                         default:
                             OnError?.Invoke("First token type is not a variable.");
-                            return false;
+                            return null;
                     }
                 }else
                 {
                     OnError?.Invoke("Second argument has to be an assignment operator.");
-                    return false;
+                    return null;
                 }
             }
             OnError?.Invoke("Not enough arguments for Assignment Statement");
-            return false;
+            return null;
         }
 
-        bool CheckForConditionalstatement(WordTokens [] tokens)
+        RelationalStatement CheckForRelational(WordTokens[] tokens)
         {
-            var conditionalOperators = new TokenType[] { TokenType.AndLogicalOperator, TokenType.OrLogicalOperator, TokenType.NotLogicalOperator,
-                                                         TokenType.EqualRelationalOperator, TokenType.NotEqualRelationalOperator, 
+            var conditionalOperators = new TokenType[] { 
+                                                         TokenType.EqualRelationalOperator, TokenType.NotEqualRelationalOperator,
                                                          TokenType.GreaterThanRelationalOperator, TokenType.LessThanRelationalOperator,
                                                          TokenType.EqualGreaterRelationalOperator, TokenType.EqualLessRelationalOperator,
                                                         };
-            var validTypes = new TokenType[] { TokenType.String, TokenType.StringVariable, TokenType.RealVariable, TokenType.IntegerVariable, TokenType.Number, TokenType.Real, TokenType.Integer };
-            var firstToken = tokens.First().tokens.First();
 
-            if(tokens.Length > 2)
+            var stringTypes = new TokenType[] { TokenType.String, TokenType.StringVariable };
+            var realTypes = new TokenType[] { TokenType.Real, TokenType.RealVariable };
+            var intTypes = new TokenType[] { TokenType.Integer, TokenType.IntegerVariable, TokenType.UnsignedInteger };
+
+            var firstToken = tokens.First();
+            bool isRelational = false;
+            if (tokens.Length == 3)
             {
-                var secondToken = tokens[1].tokens.First();
-                var thirdToken = tokens[2].tokens.First();
-                if(conditionalOperators.Any(op => secondToken.type == op))
+                var op = tokens.Select((value, index) => new { value, index }).FirstOrDefault(t => t.value.tokens.Any(to => conditionalOperators.Any(o => o == to.type)));
+                if (op != null)
                 {
-                    switch (secondToken.type)
-                    {
-                        case TokenType.AndLogicalOperator:
-                            break;
-                        case TokenType.OrLogicalOperator:
-                            break;
-                        case TokenType.NotLogicalOperator:
-                            break;
-                        case TokenType.EqualRelationalOperator:
-                            break;
-                        case TokenType.NotEqualRelationalOperator:
-                            break;
-                        case TokenType.GreaterThanRelationalOperator:
-                            break;
-                        case TokenType.LessThanRelationalOperator:
-                            break;
-                        case TokenType.EqualGreaterRelationalOperator:
-                            break;
-                        case TokenType.EqualLessRelationalOperator:
-                            break;
-                    }
+                    var index = op.index;
+                    var before = tokens[index - 1];
+                    var after = tokens[index + 1];
+                    var isStrings = (stringTypes.Any(t => before.tokens.Any(tk => tk.type == t)) && stringTypes.Any(t => after.tokens.Any(tk => tk.type == t)));
+                    var isReals = (realTypes.Any(t => before.tokens.Any(tk => tk.type == t)) && realTypes.Any(t => after.tokens.Any(tk => tk.type == t)));
+                    var isInts = (intTypes.Any(t => before.tokens.Any(tk => tk.type == t)) && intTypes.Any(t => after.tokens.Any(tk => tk.type == t)));
+                    isRelational = isStrings || isReals || isInts;
+                    if (isRelational)
+                        return new RelationalStatement(tokens, op.value, before, after);
                 }
+
             }
-            return false;
+            return null;
         }
 
-        bool CheckForArithmaticStatement(WordTokens[] tokens)
+        ArithmaticStatement CheckForArithmaticStatement(WordTokens[] tokens)
         {
-
+            if (tokens?.Length == 0)
+                return null;
             var typesForAdd = new TokenType[] { TokenType.String, TokenType.StringVariable, TokenType.RealVariable, TokenType.IntegerVariable, TokenType.Number, TokenType.Real, TokenType.Integer };
             var typesForRest = new TokenType[] { TokenType.RealVariable, TokenType.IntegerVariable, TokenType.Number, TokenType.Real, TokenType.Integer };
             var firstToken = tokens.First().tokens.First();
@@ -234,25 +228,33 @@ namespace Interpreter
                     switch (secondToken.type)
                     {
                         case TokenType.AddArithmaticOperator:
-                            return typesForAdd.Any(t => t == firstToken.type) && typesForAdd.Any(t => t == thirdToken.type);
+                            if (typesForAdd.Any(t => t == firstToken.type) && typesForAdd.Any(t => t == thirdToken.type))
+                                return new ArithmaticStatement(tokens, tokens.First(), tokens[1], tokens[2]);
+                            break;
                         case TokenType.SubArithmaticOperator:
-                            return typesForRest.Any(t => t == firstToken.type) && typesForRest.Any(t => t == thirdToken.type);
+                            if (typesForRest.Any(t => t == firstToken.type) && typesForRest.Any(t => t == thirdToken.type))
+                               return new ArithmaticStatement(tokens, tokens.First(), tokens[1], tokens[2]);
+                            break; 
                         case TokenType.MulArithmaticOperator:
-                            return typesForRest.Any(t => t == firstToken.type) && typesForRest.Any(t => t == thirdToken.type);
+                            if (typesForRest.Any(t => t == firstToken.type) && typesForRest.Any(t => t == thirdToken.type))
+                                return new ArithmaticStatement(tokens, tokens.First(), tokens[1], tokens[2]);
+                            break;
                         case TokenType.DivArithmaticOperator:
-                            return typesForRest.Any(t => t == firstToken.type) && typesForRest.Any(t => t == thirdToken.type);
+                            if (typesForRest.Any(t => t == firstToken.type) && typesForRest.Any(t => t == thirdToken.type))
+                                return new ArithmaticStatement(tokens, tokens.First(), tokens[1], tokens[2]);
+                            break;
                     }
                 }else
                 {
                     OnError?.Invoke("Second argument must be an arithmatic operator");
-                    return false;
+                    return null;
                 }
             }
             OnError?.Invoke("Not enough arguments for Arithmatic Statement");
-            return false;
+            return null;
         }
 
-        bool CheckForReadStatement(WordTokens[] tokens)
+        ReadStatement CheckForReadStatement(WordTokens[] tokens)
         {
             var allowedTokenTypes = new TokenType[] { TokenType.StringVariable,
                                                       TokenType.RealVariable,
@@ -262,36 +264,144 @@ namespace Interpreter
             {
                 var secondToken = tokens[1];
                 if (allowedTokenTypes.Any(t => t == secondToken.tokens.First().type))
-                    return true;
+                    return new ReadStatement(tokens,secondToken);
                 else
                 {
                     var errorString = allowedTokenTypes.Select(t => t.ToString()).Aggregate((current, next) => { return current + "\n" + next; });
                     errorString = "Error: Second token must be any of the following:\n" + errorString;
                     OnError?.Invoke(errorString);
-                    return false;
+                    return null;
                 }
             }
             else if (tokens.Length > 2)
             {
                 OnError?.Invoke("Too many arguments for print statement.");
-                return false;
+                return null;
             }
             OnError?.Invoke("Unidentified Error.");
-            return false;
+            return null;
         }
 
-        bool Test(WordTokens[] tokens)
+        IfStatement CheckForIfStatement(WordTokens[] tokens)
+        {
+            var firstToken = tokens.First();
+            var thenTokenPair = tokens.Select((value, index) => new { value, index }).FirstOrDefault(i => i.value.tokens.Any(t => t.type == TokenType.ThenKeyword));
+            if (thenTokenPair != null)
+            {
+                var thenIndex = thenTokenPair.index;
+                var condition = tokens.Skip(1).Take(thenIndex - 1).ToArray();
+                var statment = tokens.Skip(thenIndex + 1).ToArray();
+                var isConditional = CheckForConditional(condition);
+                var isRelational = CheckForRelational(condition);
+                var conditionStatement = (ConditionStatement)isConditional == null ? (ConditionStatement)isRelational : (ConditionStatement)isConditional;
+                if (conditionStatement != null)
+                {
+                    var asisgnment = CheckForArithmaticStatement(statment);
+                    var print = CheckForPrintStatement(statment);
+                    var read = CheckForReadStatement(statment);
+                    if (asisgnment != null)
+                        return new IfStatement(tokens, conditionStatement, asisgnment);
+                    else if (print != null)
+                        return new IfStatement(tokens, conditionStatement, print);
+                    else if (read != null)
+                        return new IfStatement(tokens, conditionStatement, print);
+                } else if (isRelational != null)
+                {
+
+                }
+               
+
+            }
+
+            return null;
+
+        }
+
+        LogicalStatement CheckForConditional(WordTokens[] tokens)
+        {
+            var firstToken = tokens.First();
+            var validOperators = new TokenType[] {TokenType.AndLogicalOperator, TokenType.OrLogicalOperator };
+            if (tokens.First().tokens.Any(t => t.type == TokenType.NotLogicalOperator))
+            {
+                var statement = tokens.Skip(1).ToArray();
+                var isConditional = CheckForConditional(statement);
+                var isRelational = CheckForRelational(statement);
+                if (isConditional != null)
+                    return new LogicalStatement(tokens, null, isConditional, tokens.First());
+                if (isRelational != null)
+                    return new LogicalStatement(tokens, null, isRelational,tokens.First());
+            }
+            else
+            {
+                var op = tokens.Select((value, index) => new { value, index }).FirstOrDefault(t => t.value.tokens.Any(to => validOperators.Any(vOp => vOp == to.type)));
+                if(op != null)
+                {
+                    var index = op.index;
+                    var firstStatement = tokens.Take(index).ToArray();
+                    var secondStatement = tokens.Skip(index + 1).ToArray();
+
+                    var firstConditional = CheckForConditional(firstStatement);
+                    var firstRelational = CheckForRelational(firstStatement);
+
+                    var secondConditional = CheckForConditional(secondStatement);
+                    var secondRelational = CheckForRelational(secondStatement);
+
+                    ConditionStatement first = ((ConditionStatement)firstConditional) == null ? (ConditionStatement)firstRelational : (ConditionStatement)firstConditional;
+                    ConditionStatement second = ((ConditionStatement)secondConditional) == null ? (ConditionStatement)secondRelational : (ConditionStatement)secondConditional;
+                    if (first  != null && second != null)
+                        return new LogicalStatement(tokens, first, second, op.value);
+                }
+                
+            }
+            return null;
+        }
+
+        Statement CheckForArithmaticAssingmentRelationalConditional(WordTokens[] tokens)
+        {
+            var assignment = CheckForAssignment(tokens);
+            var relational = CheckForRelational(tokens);
+            var arithmatic = CheckForArithmaticStatement(tokens);
+            var conditional = CheckForConditional(tokens);
+
+            if (assignment != null)
+                return assignment;
+            else if (relational != null)
+                return relational;
+            else if (arithmatic != null)
+                return arithmatic;
+            else
+                return conditional;
+        }
+
+        Statement CheckForArithmaticStatementRelationalConditional(WordTokens[] tokens)
+        {
+            var arithmatic = CheckForArithmaticStatement(tokens);
+            var relational = CheckForRelational(tokens);
+            var conditional = CheckForConditional(tokens);
+            if (arithmatic != null)
+                return arithmatic;
+            else if (relational != null)
+                return relational;
+            else
+                return conditional;
+                
+        }
+
+        Statement IdentifyStatements(WordTokens[] tokens)
         {
             TokenType firstToken;
             WordTokens token;
-
+            
             if(tokens?.Length > 0 && (token = tokens.First()).tokens?.Length > 0)
             {
                 firstToken = token.tokens.First().type;
                 switch (firstToken)
                 {
                     case TokenType.CommentKeyword:
-                        return true;
+
+                        var commentStatement = new Statement(tokens);
+                        commentStatement.type = StatementType.CommentStatement;
+                        return commentStatement;
                     case TokenType.AssignmentOperator:
                         OnError?.Invoke("No statement starts with the Assignment Operator");
                         break;
@@ -300,25 +410,28 @@ namespace Interpreter
                     case TokenType.ReadKeyword:
                         return CheckForReadStatement(tokens);
                     case TokenType.IfKeyword:
-                        break;
+                        return CheckForIfStatement(tokens);
                     case TokenType.EndKeyword:
-                        return true;
+                        var statement = new Statement(tokens);
+                        statement.type = StatementType.EndStatement;
+                        return statement;
                     case TokenType.IntegerVariable:
-                        return CheckForAssignment(tokens) || CheckForArithmaticStatement(tokens);
+                        
+                        return CheckForArithmaticAssingmentRelationalConditional(tokens);
                     case TokenType.StringVariable:
-                        return CheckForAssignment(tokens) || CheckForArithmaticStatement(tokens);
+                        return CheckForArithmaticAssingmentRelationalConditional(tokens);
                     case TokenType.RealVariable:
-                        return CheckForAssignment(tokens) || CheckForArithmaticStatement(tokens);
+                        return CheckForArithmaticAssingmentRelationalConditional(tokens);
                     case TokenType.Integer:
-                        return CheckForArithmaticStatement(tokens);
+                        return CheckForArithmaticStatementRelationalConditional(tokens);
                     case TokenType.Number:
-                        return CheckForArithmaticStatement(tokens);
+                        return CheckForArithmaticStatementRelationalConditional(tokens);
                     case TokenType.UnsignedInteger:
-                        return CheckForArithmaticStatement(tokens);
+                        return CheckForArithmaticStatementRelationalConditional(tokens);
                     case TokenType.Real:
-                        return CheckForArithmaticStatement(tokens);
+                        return CheckForArithmaticStatementRelationalConditional(tokens);
                     case TokenType.String:
-                        return CheckForArithmaticStatement(tokens);
+                        return CheckForArithmaticStatementRelationalConditional(tokens);
                     case TokenType.GreaterThanRelationalOperator:
                         OnError?.Invoke("No statement starts with the Greater Than Operator");
                         break;
@@ -365,7 +478,7 @@ namespace Interpreter
                         break;
                 }
             }
-            return false;
+            return null;
         }
 
         public string TranslateToString(WordTokens[] wordTokens)

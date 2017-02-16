@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using System.Text.RegularExpressions;
 namespace Interpreter
 {
-    class Tokenizer 
+    public class Tokenizer 
     {
         TokenRegex[] tokenRegexes;
         public Tokenizer()

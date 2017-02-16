@@ -50,6 +50,8 @@
   <ItemGroup>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Runner.cs" />
+    <Compile Include="Statement.cs" />
     <Compile Include="StatementRecognizer.cs" />
     <Compile Include="StatementRegex.cs" />
     <Compile Include="StatementType.cs" />

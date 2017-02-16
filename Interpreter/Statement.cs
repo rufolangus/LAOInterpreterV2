@@ -271,6 +271,10 @@ namespace Interpreter
                         var variab = variables[variable.value];
                         Console.WriteLine(variab);
                     }
+                    else if (variable.tokens.Any(t => Token.NumericTypes.Any(tt => tt == t.type)))
+                        Console.WriteLine(variable.value);
+                    else if (variable.tokens.Any(t => t.type == TokenType.String))
+                        Console.WriteLine(variable.value.Replace('\"', ' '));
                     else
                         Console.WriteLine("Error: Variable does not exist");
                     

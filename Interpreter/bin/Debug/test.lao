@@ -1,0 +1,13 @@
+d = 5
+f = 10
+x = "fklds"
+if f .gt. 5 then print x
+y = "Enter number:"
+print y
+read c
+print y
+read a
+yx = "a greater than c"
+xy = "c greater than a"
+if a .gt. c then print yx
+if a .lt. c then print xy

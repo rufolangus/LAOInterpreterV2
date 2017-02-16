@@ -40,6 +40,21 @@ namespace Interpreter
                         MainRoutine(sentence);
                     Console.Read();
                     return;
+                }else
+                    verbose = args[0] == "-v";
+                
+            }else if(args.Length == 2)
+            {
+                verbose = args[0] == "-v";
+
+                var filePath = args[1];
+                if (Directory.Exists(filePath) || File.Exists(filePath))
+                {
+                    var file = File.ReadAllLines(filePath);
+                    foreach (var sentence in file)
+                        MainRoutine(sentence);
+                    Console.Read();
+                    return;
                 }
             }
 

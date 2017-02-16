@@ -266,8 +266,14 @@ namespace Interpreter
             {
                 if(variable != null)
                 {
-                    var variab = variables[variable.value];
-                    Console.WriteLine(variab);
+                    if (variables.ContainsKey(variable.value))
+                    {
+                        var variab = variables[variable.value];
+                        Console.WriteLine(variab);
+                    }
+                    else
+                        Console.WriteLine("Error: Variable does not exist");
+                    
 
                 }else
                     Console.WriteLine("");
